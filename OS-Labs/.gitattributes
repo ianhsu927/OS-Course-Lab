@@ -1,5 +1,7 @@
 * text eol=lf
 
+Lab1/user/procmgr binary
+
 *.obj binary
 *.dbg.obj binary
 *.png binary

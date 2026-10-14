@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#182324">
+  <title>ChCore Observatory · 操作系统观察台</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="cases.css">
+  <link rel="stylesheet" href="io-cases.css">
+  <link rel="stylesheet" href="concurrency-cases.css">
+  <link rel="stylesheet" href="program-cases.css">
+  <script src="case-kit.js" defer></script>
+  <script src="io-cases.js" defer></script>
+  <script src="concurrency-cases.js" defer></script>
+  <script src="program-cases.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="#syscall"><span class="brand-mark"><svg><use href="icons.svg#cpu"></use></svg></span><span>ChCore<span class="brand-sub">OBSERVATORY</span></span></a>
+    <div class="workspace"><span class="status-dot"></span> OS COURSE LAB <span class="workspace-tag">LAB 1</span></div>
+    <div class="nav-caption">实验案例</div>
+    <nav aria-label="实验案例">
+      <button class="nav-item active" data-view="syscall" aria-current="page"><svg><use href="icons.svg#activity"></use></svg><span>系统调用</span><span class="nav-number">01</span></button>
+      <button class="nav-item" data-view="memory"><svg><use href="icons.svg#layers"></use></svg><span>启动页表</span><span class="nav-number">02</span></button>
+      <button class="nav-item" data-view="scheduler"><svg><use href="icons.svg#cpu"></use></svg><span>轮转调度</span><span class="nav-number">03</span></button>
+      <button class="nav-item" data-view="interrupts"><svg><use href="icons.svg#activity"></use></svg><span>中断</span><span class="nav-number">04</span></button>
+      <button class="nav-item" data-view="synchronization"><svg><use href="icons.svg#layers"></use></svg><span>同步</span><span class="nav-number">05</span></button>
+      <button class="nav-item" data-view="mutex"><svg><use href="icons.svg#circle-dot"></use></svg><span>互斥</span><span class="nav-number">06</span></button>
+      <button class="nav-item" data-view="programs"><svg><use href="icons.svg#terminal"></use></svg><span>程序与进程</span><span class="nav-number">07</span></button>
+      <button class="nav-item" data-view="polling"><svg><use href="icons.svg#rotate-ccw"></use></svg><span>程序查询</span><span class="nav-number">08</span></button>
+      <button class="nav-item" data-view="dma"><svg><use href="icons.svg#arrow-right"></use></svg><span>DMA</span><span class="nav-number">09</span></button>
+    </nav>
+    <select id="case-select" class="case-select" aria-label="选择实验案例"><option value="syscall">01 系统调用</option><option value="memory">02 启动页表</option><option value="scheduler">03 轮转调度</option><option value="interrupts">04 中断</option><option value="synchronization">05 同步</option><option value="mutex">06 互斥</option><option value="programs">07 程序与进程</option><option value="polling">08 程序查询</option><option value="dma">09 DMA</option></select>
+    <div class="sidebar-bottom"><div class="sidebar-rule"></div><div class="environment-label">实验环境</div><div class="environment-line"><span>AArch64</span><span>Raspberry Pi 3</span></div><div class="environment-line"><span>ChCore</span><span>QEMU / GDB</span></div><div class="sidebar-source"><span class="status-dot"></span>本地观察台</div></div>
+  </aside>
+  <div class="app-shell">
+    <header class="topbar"><div class="breadcrumb">实验工作台 <svg><use href="icons.svg#chevron-right"></use></svg> <span id="breadcrumb-current">系统调用</span></div><div class="architecture"><span class="tiny-square"></span>AARCH64 <span class="topbar-divider"></span> ChCore / Lab 1</div></header>
+    <main>
+      <section id="view-syscall" class="view">
+        <div class="page-heading"><div><div class="eyebrow">01 / EXCEPTION & SYSTEM CALL</div><h1>用户态与内核态</h1><p class="page-subtitle"><code>hello_world.bin</code> <span class="subtitle-divider">/</span> <code>svc #0</code> 执行现场</p></div><div class="heading-actions"><button id="export-trace" class="icon-button" title="导出采样 JSON" aria-label="导出采样 JSON" disabled><svg><use href="icons.svg#download"></use></svg></button><button id="capture" class="primary-button"><svg><use href="icons.svg#circle-dot"></use></svg><span>重新采样</span></button></div></div>
+        <div class="evidence-bar"><span class="evidence-badge" id="source-label">等待执行数据</span><span id="trace-meta">尚未加载采样</span><span class="evidence-spacer"></span><span class="mini-status" id="capture-status" role="status" aria-live="polite">连接中</span></div>
+        <div class="error-banner" id="trace-error" role="alert" hidden><svg><use href="icons.svg#triangle-alert"></use></svg><span></span><button id="retry-trace" class="text-button">重试</button></div>
+        <div class="syscall-layout">
+          <div class="execution-region">
+            <div class="section-heading"><h2>执行路径</h2><div class="mode-legend"><span class="legend user">EL0 用户态</span><span class="legend kernel">EL1 内核态</span></div></div>
+            <div class="execution-stage" id="execution-stage">
+              <div class="lane-label user-label"><b>EL0</b><span>用户程序</span></div>
+              <div class="lane-label kernel-label"><b>EL1</b><span>内核</span></div>
+              <div class="execution-lane lane-user"></div><div class="execution-lane lane-kernel"></div>
+              <svg class="execution-connectors" viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true"><path id="trace-path" d="M100 66 L300 228 L500 228 L700 228 L900 66"></path><path id="trace-progress" d=""></path></svg>
+              <div id="execution-nodes" class="execution-nodes"></div>
+              <div class="empty-stage" id="empty-stage">等待 QEMU + GDB 执行记录</div>
+            </div>
+            <div class="playback"><div class="transport"><button id="reset-trace" class="icon-button" title="回到开始" aria-label="回到开始"><svg><use href="icons.svg#rotate-ccw"></use></svg></button><button id="previous-event" class="icon-button" title="上一事件" aria-label="上一事件"><svg><use href="icons.svg#skip-back"></use></svg></button><button id="play-trace" class="play-button" title="播放记录" aria-label="播放记录"><svg><use href="icons.svg#play"></use></svg></button><button id="next-event" class="icon-button" title="下一事件" aria-label="下一事件"><svg><use href="icons.svg#skip-forward"></use></svg></button></div><span class="playback-counter" id="event-counter">00 / 00</span><input id="trace-slider" type="range" min="0" max="4" value="0" aria-label="执行事件" disabled><select id="playback-speed" aria-label="回放速度"><option value="1800">0.5×</option><option value="900" selected>1×</option><option value="450">2×</option></select></div>
+            <div class="current-event"><div class="event-index" id="selected-number">--</div><div><div class="current-event-top"><h3 id="selected-label">等待执行记录</h3><span class="mode-pill" id="selected-mode">EL --</span></div><p id="selected-detail">采样完成后，执行现场会在这里显示。</p></div><code id="selected-instruction">--</code></div>
+            <div class="section-heading event-heading"><h2>事件记录</h2><span class="muted" id="event-total">0 EVENTS</span></div>
+            <div class="event-table-wrap"><table class="event-table"><thead><tr><th>序号</th><th>执行阶段</th><th>状态</th><th>程序计数器 PC</th><th>指令</th></tr></thead><tbody id="event-log"></tbody></table></div>
+          </div>
+          <aside class="inspection-region">
+            <div class="section-heading"><h2>寄存器现场</h2><span class="mini-label" id="register-step">EVENT --</span></div>
+            <div class="register-primary"><span>PC <small>当前指令地址</small></span><code id="reg-pc">--</code></div>
+            <dl class="register-list" id="register-list"></dl>
+            <div class="register-note" id="register-note">选择事件查看 CPU 现场</div>
+            <div class="section-heading terminal-heading"><h2><svg><use href="icons.svg#terminal"></use></svg>串口输出</h2><span class="mini-label">QEMU</span></div>
+            <pre id="serial-output" class="terminal">等待采样输出...</pre>
+            <div class="provenance"><svg><use href="icons.svg#file-check"></use></svg><span id="provenance">数据来源：未加载</span></div>
+          </aside>
+        </div>
+      </section>
+      <section id="view-memory" class="view" hidden>
+        <div class="page-heading"><div><div class="eyebrow">02 / VIRTUAL MEMORY</div><h1>启动页表</h1><p class="page-subtitle">AArch64 <span class="subtitle-divider">/</span> 内核高地址映射</p></div><span class="model-badge">启动映射模型</span></div>
+        <div class="evidence-bar"><span class="evidence-badge model">源代码映射</span><span>Lab1 · init/mmu.c · 静态启动页表</span><span class="evidence-spacer"></span><span class="mini-status">非运行时内存采样</span></div>
+        <form id="address-form" class="address-form"><label for="virtual-address">虚拟地址 VA</label><div class="address-input-group"><input id="virtual-address" value="0xffffff0000080000" autocomplete="off" spellcheck="false" aria-describedby="address-error"><button class="primary-button" type="submit"><svg><use href="icons.svg#arrow-right"></use></svg>地址转换</button></div><div class="preset-row"><span>地址预设</span><button type="button" data-address="0xffffff0000080000">内核入口</button><button type="button" data-address="0xffffff003f201000">UART</button><button type="button" data-address="0xffffff0040000000">本地外设</button></div></form>
+        <div id="address-error" class="error-banner" role="alert" hidden></div>
+        <div class="section-heading"><h2>页表遍历</h2><span class="mini-label" id="walk-granularity">4 KB PAGE</span></div>
+        <div id="address-bits" class="address-bits"></div><div id="page-walk" class="page-walk"></div>
+        <div class="translation-result"><div><span class="result-label">虚拟地址</span><code id="result-virtual">--</code></div><svg><use href="icons.svg#arrow-right"></use></svg><div><span class="result-label">物理地址</span><code id="result-physical">--</code></div><span id="mapping-kind" class="mode-pill">等待转换</span></div>
+        <div class="section-heading"><h2>映射属性</h2><span class="mini-label">DESCRIPTOR</span></div><dl class="mapping-attributes" id="mapping-attributes"></dl><p class="source-footnote">模型依据 Lab1 的静态启动页表生成；不读取运行中的页表，也不反映用户进程映射。</p>
+      </section>
+      <section id="view-scheduler" class="view" hidden>
+        <div class="page-heading"><div><div class="eyebrow">03 / THREAD SCHEDULING</div><h1>轮转调度</h1><p class="page-subtitle">Round Robin <span class="subtitle-divider">/</span> 就绪、运行与完成</p></div><span class="model-badge">教学模型</span></div>
+        <div class="evidence-bar"><span class="evidence-badge model">教学模型</span><span>所有线程在 t = 0 到达 · 每个时钟单位执行 1 单位工作</span><span class="evidence-spacer"></span><span class="mini-status">非内核调度采样</span></div>
+        <div class="scheduler-settings"><label>CPU 核心<select id="cpu-count"><option value="1">1 核</option><option value="4">4 核</option></select></label><label>时间片<input id="quantum" type="number" min="1" max="8" value="2"><span>ticks</span></label><label class="checkbox-label"><input id="affinity" type="checkbox">固定 CPU 亲和性</label><div class="settings-spacer"></div><span class="scheduler-time">t = <b id="scheduler-tick">0</b></span><button id="reset-scheduler" class="icon-button" title="重置调度" aria-label="重置调度"><svg><use href="icons.svg#rotate-ccw"></use></svg></button><button id="step-scheduler" class="icon-button" title="执行一个时钟单位" aria-label="执行一个时钟单位"><svg><use href="icons.svg#skip-forward"></use></svg></button><button id="play-scheduler" class="primary-button"><svg><use href="icons.svg#play"></use></svg><span>运行</span></button></div>
+        <div class="scheduler-layout"><div><div class="section-heading"><h2>CPU 执行时间轴</h2><div class="mode-legend"><span class="legend thread-a">线程 A</span><span class="legend thread-b">线程 B</span><span class="legend thread-c">线程 C</span></div></div><div class="gantt-scroll"><div id="gantt" class="gantt"></div></div><div class="section-heading"><h2>就绪队列</h2><span class="mini-label">FIFO</span></div><div id="ready-queue" class="ready-queue"></div><div class="section-heading"><h2>当前运行</h2><span class="mini-label" id="scheduler-state">READY</span></div><div id="cpu-states" class="cpu-states"></div></div><aside class="thread-region"><div class="section-heading"><h2>线程</h2><span class="mini-label">BURST</span></div><div id="thread-settings" class="thread-settings"></div><dl class="scheduler-metrics"><div><dt>已完成</dt><dd id="completed-count">0 / 3</dd></div><div><dt>上下文切换</dt><dd id="context-count">0</dd></div><div><dt>平均等待时间</dt><dd id="wait-average">0 ticks</dd></div></dl><div class="register-note">时间片用完且仍有工作时，线程回到就绪队列末尾。等待时间按每个 tick 中处于就绪队列的时长累计。</div></aside></div>
+      </section>
+      <section id="view-interrupts" class="view" hidden></section>
+      <section id="view-synchronization" class="view" hidden></section>
+      <section id="view-mutex" class="view" hidden></section>
+      <section id="view-programs" class="view" hidden></section>
+      <section id="view-polling" class="view" hidden></section>
+      <section id="view-dma" class="view" hidden></section>
+    </main>
+    <footer><span>CHCORE OBSERVATORY</span><span id="footer-source">执行记录 · 源码模型 · 教学模型</span></footer>
+  </div>
+</body>
+</html>
