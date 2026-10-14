@@ -1,0 +1,105 @@
+{
+  "id": "trace-20261014T112523524458Z-irq-9e180c",
+  "case": "interrupt",
+  "source": "recorded-qemu-gdb",
+  "capturedAt": "2026-10-14T11:25:29.767514Z",
+  "program": "ChCore 用户线程 / 物理定时器",
+  "architecture": "AArch64",
+  "events": [
+    {
+      "id": 0,
+      "label": "定时器 IRQ 进入内核",
+      "phase": "entry",
+      "el": 1,
+      "pc": "0xffffff000008fa1c",
+      "instruction": "sub sp, sp, #0x110",
+      "cpsr": "0x3c5",
+      "registers": {
+        "ELR_EL1": "0x4c187334b858",
+        "SPSR_EL1": "0x60000000",
+        "ESR_EL1": "0x56000000",
+        "x0": "0x7c",
+        "x1": "0x0",
+        "x8": "0x12"
+      },
+      "detail": "物理非安全定时器的 IRQ 打断 EL0 线程，CPU 进入 irq_el0_64；SPSR_EL1 保存被打断线程的 EL0 状态。"
+    },
+    {
+      "id": 1,
+      "label": "处理定时器中断",
+      "phase": "kernel",
+      "el": 1,
+      "pc": "0xffffff0000096428",
+      "instruction": "stp x29, x30, [sp, #-96]!",
+      "cpsr": "0x600003c5",
+      "registers": {
+        "ELR_EL1": "0x4c187334b858",
+        "SPSR_EL1": "0x60000000",
+        "ESR_EL1": "0x56000000",
+        "x0": "0x1",
+        "x1": "0xffffff0000093000",
+        "x8": "0x12"
+      },
+      "detail": "平台中断分派到 handle_timer_irq，更新定时器相关状态；中断处理可触发线程调度。"
+    },
+    {
+      "id": 2,
+      "label": "恢复选中的用户线程",
+      "phase": "return",
+      "el": 1,
+      "pc": "0xffffff000008fb54",
+      "instruction": "eret",
+      "cpsr": "0x200003c5",
+      "registers": {
+        "ELR_EL1": "0x4c187334b858",
+        "SPSR_EL1": "0x60000000",
+        "ESR_EL1": "0x56000000",
+        "x0": "0x7c",
+        "x1": "0x0",
+        "x8": "0x12"
+      },
+      "detail": "调度器恢复一个用户线程的寄存器并执行 eret；这个线程可能与被中断的线程不同。"
+    },
+    {
+      "id": 3,
+      "label": "CPU 返回用户态",
+      "phase": "user",
+      "el": 0,
+      "pc": "0x4c187334b858",
+      "instruction": "mov x0, #0x0                    // #0",
+      "cpsr": "0x60000000",
+      "registers": {
+        "ELR_EL1": "0x4c187334b858",
+        "SPSR_EL1": "0x60000000",
+        "ESR_EL1": "0x56000000",
+        "x0": "0x7c",
+        "x1": "0x0",
+        "x8": "0x12"
+      },
+      "detail": "eret 恢复 EL0，CPU 从调度器选择的用户线程继续执行。"
+    }
+  ],
+  "console": "boot: init_c\n[BOOT] Install kernel page table\n[BOOT] Enable el1 MMU\n[BOOT] Jump to kernel main\n[INFO] [ChCore] lock init finished\n[INFO] [ChCore] uart init finished\n[INFO] [ChCore] per-CPU info init finished\n[INFO] [ChCore] vc_mem: 0x3c000000, size: 0x4000000\n[INFO] [ChCore] physmem_map: [0x6ad000, 0x3c000000)\n[INFO] [ChCore] mm init finished\n[INFO] CPU freq 62500000, set timer 625000\n[INFO] [ChCore] interrupt init finished\n[INFO] [ChCore] pmu init finished\n[INFO] [ChCore] sched init finished\n[INFO] CPU 0 is active\n[INF[INFO] CPU freq O] CPU 62500000, se1 is activet t\nimer 625000\n[IN[INFO] CPU 2 iFO] CPU freq 62500s active\n000, set timer 625000\n[INFO] CPU 3 is active\n[INFO] All 4 CPUs are active\n[INFO] CPU freq 62500000, set timer 625000\n[INFO] [ChCore] boot multicore finished\n[INFO] [ChCore] create initial thread done\n[INFO] End of Kernel Checkpoints: 0xDEADBEEF\nUser Init: booting fs server (FSMGR and real FS) \n[procmgr] register server value = 0\nUser Init: booting network server\n[fsm] Mounting fs from local binary: /tmpfs.srv...\n[fsm] TMPFS is up, with cap = 11\n[tmpfs] register server value = 0\n[fsm] [FSM] register server value = 0\n[fsm] [FSM] register server value = 0\n[fsm] mount_disk_fs: Failed to open file /disk_fs.yaml\n[lwip] Host at 192.168.0.3 mask 255.255.255.0 gateway 192.168.0.1\n[HDMI] register server value = 0\n\n ______     __  __     ______     __  __     ______     __         __        \n/\\  ___\\   /\\ \\_\\ \\   /\\  ___\\   /\\ \\_\\ \\   /\\  ___\\   /\\ \\       /\\ \\       \n\\ \\ \\____  \\ \\  __ \\  \\ \\___  \\  \\ \\  __ \\  \\ \\  __\\   \\ \\ \\____  \\ \\ \\____  \n \\ \\_____\\  \\ \\_\\ \\_\\  \\/\\_____\\  \\ \\_\\ \\_\\  \\ \\_____\\  \\ \\_____\\  \\ \\_____\\ \n  \\/_____/   \\/_/\\/_/   \\/_____/   \\/_/\\/_/   \\/_____/   \\/_____/   \\/_____/ \n\n\nWelcome to ChCore shell!\n$ ",
+  "summary": {
+    "eventCount": 4,
+    "cpu": 0,
+    "completed": true,
+    "interruptedPc": "0x4c187334b858",
+    "resumedPc": "0x4c187334b858",
+    "sameResumeAddress": true,
+    "elapsedMs": 6242,
+    "interrupt": "physical non-secure timer",
+    "irqSourceMask": "0x2"
+  },
+  "provenance": {
+    "kernel": "Lab1/build/kernel.img",
+    "kernelSha256": "2d1d218a0607c4c2ee614a67533402158578260ad2403da239249170f5410959",
+    "machine": "raspi3b",
+    "cpuThread": 1,
+    "note": "真实定时器 IRQ 采样。入口前的用户指令没有直接采样，返回可能调度到其他线程；ESR_EL1 不用于判断 IRQ 来源。",
+    "serialLog": "trace-20261014T112523524458Z-irq-9e180c.serial.log",
+    "debuggerLog": "trace-20261014T112523524458Z-irq-9e180c.gdb.log",
+    "timing": "GDB 停止点与采集总时长不代表中断延迟。",
+    "savedReplay": true
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "id": "recorded-trace-20261014T110037193990Z-c854f4",
+  "source": "recorded-qemu-gdb",
+  "capturedAt": "2026-10-14T11:00:47.178511Z",
+  "program": "hello_world.bin",
+  "architecture": "AArch64",
+  "events": [
+    {
+      "id": 0,
+      "label": "用户态发起系统调用",
+      "phase": "user",
+      "el": 0,
+      "pc": "0x47f24548b0b0",
+      "instruction": "svc #0x0",
+      "cpsr": "0x60000000",
+      "registers": {
+        "ELR_EL1": "0x47f24548bc7c",
+        "SPSR_EL1": "0x80000000",
+        "ESR_EL1": "0x56000000",
+        "x0": "0x54485a8ce650",
+        "x1": "0x19",
+        "x8": "0x0"
+      },
+      "detail": "EL0 的用户程序准备执行 svc #0；x8 选择输出系统调用，x0 / x1 指向文本及其长度。"
+    },
+    {
+      "id": 1,
+      "label": "CPU 进入异常向量",
+      "phase": "entry",
+      "el": 1,
+      "pc": "0xffffff000008f400",
+      "instruction": "b 0xffffff000008f8b4 <sync_el0_64>",
+      "cpsr": "0x3c5",
+      "registers": {
+        "ELR_EL1": "0x47f24548b0b4",
+        "SPSR_EL1": "0x60000000",
+        "ESR_EL1": "0x56000000",
+        "x0": "0x54485a8ce650",
+        "x1": "0x19",
+        "x8": "0x0"
+      },
+      "detail": "svc 触发同步异常，CPU 切换到 EL1；ELR_EL1 保存下一条用户指令，SPSR_EL1 保存用户状态。"
+    },
+    {
+      "id": 2,
+      "label": "内核处理输出请求",
+      "phase": "kernel",
+      "el": 1,
+      "pc": "0xffffff00000a7370",
+      "instruction": "stp x29, x30, [sp, #-144]!",
+      "cpsr": "0x600003c5",
+      "registers": {
+        "ELR_EL1": "0x47f24548b0b4",
+        "SPSR_EL1": "0x60000000",
+        "ESR_EL1": "0x56000000",
+        "x0": "0x54485a8ce650",
+        "x1": "0x19",
+        "x8": "0x0"
+      },
+      "detail": "异常处理代码分派到 sys_putstr；内核读取用户缓冲区并通过串口输出。",
+      "buffer": "argv[0]: /hello_world.bin"
+    },
+    {
+      "id": 3,
+      "label": "内核准备返回用户态",
+      "phase": "return",
+      "el": 1,
+      "pc": "0xffffff000008fa18",
+      "instruction": "eret",
+      "cpsr": "0x600003c5",
+      "registers": {
+        "ELR_EL1": "0x47f24548b0b4",
+        "SPSR_EL1": "0x60000000",
+        "ESR_EL1": "0x56000000",
+        "x0": "0xffffff00006a63d8",
+        "x1": "0x19",
+        "x8": "0x0"
+      },
+      "detail": "系统调用完成，内核恢复用户寄存器，准备执行 eret。"
+    },
+    {
+      "id": 4,
+      "label": "用户程序继续执行",
+      "phase": "user",
+      "el": 0,
+      "pc": "0x47f24548b0b4",
+      "instruction": "mov x0, x2",
+      "cpsr": "0x60000000",
+      "registers": {
+        "ELR_EL1": "0x47f24548b0b4",
+        "SPSR_EL1": "0x60000000",
+        "ESR_EL1": "0x56000000",
+        "x0": "0xffffff00006a63d8",
+        "x1": "0x19",
+        "x8": "0x0"
+      },
+      "detail": "eret 恢复 EL0 状态，PC 回到 svc 后的下一条指令，用户程序继续运行。"
+    }
+  ],
+  "console": "boot: init_c\n[BOOT] Install kernel page table\n[BOOT] Enable el1 MMU\n[BOOT] Jump to kernel main\n[INFO] [ChCore] lock init finished\n[INFO] [ChCore] uart init finished\n[INFO] [ChCore] per-CPU info init finished\n[INFO] [ChCore] vc_mem: 0x3c000000, size: 0x4000000\n[INFO] [ChCore] physmem_map: [0x6ad000, 0x3c000000)\n[INFO] [ChCore] mm init finished\n[INFO] CPU freq 62500000, set timer 625000\n[INFO] [ChCore] interrupt init finished\n[INFO] [ChCore] pmu init finished\n[INFO] [ChCore] sched init finished\n[INFO] CPU 0 is active\n[INFO] CPU freq 62500000, set timer 625000\n[INFO] CPU 1 is active\n[INFO] CPU freq 62500000, set timer 625000\n[INFO] CPU 2 is active\n[INFO] CPU freq 6250[INF0000, set timerO] CPU 3 is active\n[INFO] All 625000\n 4 CPUs are active\n[INFO] [ChCore] boot multicore finished\n[INFO] [ChCore] create initial thread done\n[INFO] End of Kernel Checkpoints: 0xDEADBEEF\nUser Init: booting fs server (FSMGR and real FS) \n[procmgr] register server value = 0\nUser Init: booting network server\n[fsm] Mounting fs from local binary: /tmpfs.srv...\n[fsm] TMPFS is up, with cap = 11\n[tmpfs] register server value = 0\n[fsm] [FSM] register server value = 0\n[fsm] [FSM] register server value = 0\n[fsm] mount_disk_fs: Failed to open file /disk_fs.yaml\n[lwip] Host at 192.168.0.3 mask 255.255.255.0 gateway 192.168.0.1\n[HDMI] register server value = 0\n\n ______     __  __     ______     __  __     ______     __         __        \n/\\  ___\\   /\\ \\_\\ \\   /\\  ___\\   /\\ \\_\\ \\   /\\  ___\\   /\\ \\       /\\ \\       \n\\ \\ \\____  \\ \\  __ \\  \\ \\___  \\  \\ \\  __ \\  \\ \\  __\\   \\ \\ \\____  \\ \\ \\____  \n \\ \\_____\\  \\ \\_\\ \\_\\  \\/\\_____\\  \\ \\_\\ \\_\\  \\ \\_____\\  \\ \\_____\\  \\ \\_____\\ \n  \\/_____/   \\/_/\\/_/   \\/_____/   \\/_/\\/_/   \\/_____/   \\/_____/   \\/_____/ \n\n\nWelcome to ChCore shell!\n$ [lwip] TCP/IP initialized.\n[lwip] Add netif 0x507aecb0eed0\n[lwip] register server value = 0\nNetwork-CP-Daemon: running at localhost:4096\nhello_world.bin\nHello, world!\n\nargv[0]: /hello_world.bin\nbufs: 0x644416f20a80, bufs content: Hello, world!\n\nlarge malloc addr: 0x644416f23000\nlarge malloc addr: 0x644416f25000\nlarge malloc addr: 0x644416f27000\nlarge malloc addr: 0x644416f29000\nlarge malloc addr: 0x644416f2b000\nlarge malloc addr: 0x644416f2d000\nlarge malloc addr: 0x644416f2f000\nlarge malloc addr: 0x644416f31000\nlarge malloc addr: 0x644416f33000\nlarge malloc addr: 0x644416f35000\nsmall malloc addr: 0x644416f20fc0\nsmall malloc addr: 0x644416f209a0\nsmall malloc addr: 0x644416f209e0\nsmall malloc addr: 0x644416f20e40\nsmall malloc addr: 0x644416f20e80\nsmall malloc addr: 0x644416f20ec0\nsmall malloc addr: 0x47f245518020\nsmall malloc addr: 0x47f24551e7c0\nsmall malloc addr: 0x47f24551e800\nsmall malloc addr: 0x47f24551e840\nmmap addr: 0x7e4a4b2f6000\nmmap addr: 0x7e4a4b2f7000\nread after mprotect: T\nset affinity return: 0\nget affinity return: 0\ncurrent affinity: 3\nAlive after yield!\nHello world finished!\n\n$ ",
+  "summary": {
+    "consoleMessage": "argv[0]: /hello_world.bin",
+    "syscall": "sys_putstr",
+    "syscallNumber": 0,
+    "cpu": 0,
+    "modeSwitches": 2,
+    "eventCount": 5,
+    "elapsedMs": 9984,
+    "completed": true
+  },
+  "provenance": {
+    "kernel": "Lab1/build/kernel.img",
+    "kernelSha256": "2d1d218a0607c4c2ee614a67533402158578260ad2403da239249170f5410959",
+    "machine": "raspi3b",
+    "breakpointDerivation": "User svc is ELR_EL1 - 4 at sys_putstr; eret is derived from disassemble el0_syscall.",
+    "observedCycle": "One complete consecutive sys_putstr cycle; the first Hello output is used only to locate the syscall wrapper and is excluded from events.",
+    "cpuThread": 1,
+    "serialLog": "trace-20261014T110037193990Z-c854f4.serial.log",
+    "debuggerLog": "trace-20261014T110037193990Z-c854f4.gdb.log",
+    "jsonFile": "trace-20261014T110037193990Z-c854f4.json",
+    "timing": "Events are GDB stop points; elapsedMs is host capture duration, not syscall latency.",
+    "savedReplay": true,
+    "note": "保存的 QEMU/GDB 真实采样；5 个事件属于同一次 sys_putstr 调用。重新采样会产生新的 ASLR 地址。"
+  }
+}
